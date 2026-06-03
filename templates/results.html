@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+</head>
+<body>
+
+<h1>Results for {{ filename }}</h1>
+
+<h2>Required Headings Check</h2>
+
+<h1>Results for {{ filename }}</h1>
+
+<h2>
+    {{ found_headings|length }} /
+    {{ required_headings|length }}
+    Headings Found
+</h2>
+
+<h2>Required Headings Check</h2>
+
+<ul>
+
+{% for heading in required_headings %}
+
+    {% if heading in found_headings %}
+
+        <li style="color:green;">
+            ✓ {{ heading }}
+        </li>
+
+    {% else %}
+
+        <li style="color:red; font-weight:bold;">
+            ✗ {{ heading }}
+        </li>
+
+    {% endif %}
+
+{% endfor %}
+
+</ul>
+
+<h2>Spelling Errors</h2>
+<p>{{ spelling_errors }}</p>
+
+
+
+<br>
+
+<a href="/">Upload Another File</a>
+
+</body>
+</html>
