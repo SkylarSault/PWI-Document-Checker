@@ -1,5 +1,5 @@
-Flask
-python-docx
-PyPDF2
-pyspellchecker
-gunicorn
+Flask==3.1.0
+python-docx==1.1.2
+PyPDF2==3.0.1
+pyspellchecker==0.8.2
+gunicorn==23.0.0
