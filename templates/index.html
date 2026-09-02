@@ -1,62 +1,326 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PWI Document Checker</title>
-</head>
-<style>
-
-    body {
-        background-color: lightgray;
-    }
-    
-    div {
-        background-color: white;
-        width: 600px;
-        margin: 50px auto;
-        padding: 20px;
-    }
-    
-    </style>
     <style>
-
-        button {
-            background-color: blue;
-            color: white;
-            padding: 10px;
+        :root {
+            color-scheme: light;
+            --plane:          #f9f9f7;
+            --surface:        #fcfcfb;
+            --text-primary:   #0b0b0b;
+            --text-secondary: #52514e;
+            --text-muted:     #898781;
+            --border:         rgba(11, 11, 11, 0.10);
+            --accent:         #256abf;
+            --accent-hover:   #184f95;
+            --accent-wash:    #cde2fb;
+            --dropzone-bg:    #fdfdfc;
         }
-        
-        </style>
 
+        @media (prefers-color-scheme: dark) {
+            :root:where(:not([data-theme="light"])) {
+                color-scheme: dark;
+                --plane:          #0d0d0d;
+                --surface:        #1a1a19;
+                --text-primary:   #ffffff;
+                --text-secondary: #c3c2b7;
+                --text-muted:     #898781;
+                --border:         rgba(255, 255, 255, 0.10);
+                --accent:         #3987e5;
+                --accent-hover:   #5598e7;
+                --accent-wash:    #184f95;
+                --dropzone-bg:    #202020;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 48px 24px;
+            background-color: var(--plane);
+            color: var(--text-primary);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            line-height: 1.5;
+        }
+
+        .card {
+            background-color: var(--surface);
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 40px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            margin: 0 0 32px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        /* Drop zone --------------------------------------------------- */
+
+        .dropzone {
+            display: block;
+            padding: 40px 24px;
+            border: 1.5px dashed var(--border);
+            border-radius: 10px;
+            background-color: var(--dropzone-bg);
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+
+        .dropzone:hover,
+        .dropzone:focus-within {
+            border-color: var(--accent);
+        }
+
+        .dropzone.is-dragover {
+            border-color: var(--accent);
+            background-color: var(--accent-wash);
+        }
+
+        .dropzone.has-file {
+            border-style: solid;
+            border-color: var(--accent);
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .dz-icon {
+            display: block;
+            margin: 0 auto 12px;
+            color: var(--text-muted);
+        }
+
+        .dropzone.has-file .dz-icon { color: var(--accent); }
+
+        .dz-primary {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .dz-secondary {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .browse-link {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Actions ----------------------------------------------------- */
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        button[type="submit"] {
+            background-color: var(--accent);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        button[type="submit"]:hover { background-color: var(--accent-hover); }
+
+        button[type="submit"]:disabled {
+            background-color: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* What gets checked ------------------------------------------- */
+
+        .checks {
+            margin: 32px 0 0;
+            padding: 20px 0 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .checks h2 {
+            margin: 0 0 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .checks ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            gap: 8px;
+        }
+
+        .checks li {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .checks svg {
+            flex-shrink: 0;
+            margin-top: 3px;
+            color: var(--accent);
+        }
+    </style>
+</head>
 <body>
 
-<h1>PWI Document Control Tool</h1>
-<p>
-    Upload a procedure document for automatic review.
-    </p>
-
-<form method="POST" enctype="multipart/form-data">
-    <input type="file" name="document">
-    <button type="submit">Check Document</button>
-</form>
-
-</body>
-<div>
+<main class="card">
 
     <h1>PWI Document Control Tool</h1>
-
-    <p>
-        Upload a procedure document for automatic review.
-    </p>
+    <p class="subtitle">Upload a procedure document for an automatic structure and spelling review.</p>
 
     <form method="POST" enctype="multipart/form-data">
 
-        <input type="file" name="document">
+        <label class="dropzone" id="dropzone">
+            <input type="file" name="document" id="fileInput" accept=".docx,.pdf,.txt" required>
+            <svg class="dz-icon" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>
+                <path d="M12 11v6"/>
+                <path d="M9.5 13.5 12 11l2.5 2.5"/>
+            </svg>
+            <span class="dz-primary" id="dzPrimary">Drag a document here</span>
+            <span class="dz-secondary" id="dzSecondary">
+                or <span class="browse-link">browse your files</span> &middot; Word, PDF or text
+            </span>
+        </label>
 
-        <button type="submit">
-            Check Document
-        </button>
+        <div class="actions">
+            <button type="submit" id="submitBtn" disabled>Check Document</button>
+            <span class="hint" id="hint">Choose a file to continue</span>
+        </div>
 
     </form>
 
-</div>
+    <section class="checks">
+        <h2>What this checks</h2>
+        <ul>
+            <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                All 17 required PWI section headings are present
+            </li>
+            <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                Spelling across the full document body
+            </li>
+            <li>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                Forbidden wording that should not ship in a procedure
+            </li>
+        </ul>
+    </section>
+
+</main>
+
+<script>
+    var dropzone  = document.getElementById('dropzone');
+    var fileInput = document.getElementById('fileInput');
+    var primary   = document.getElementById('dzPrimary');
+    var secondary = document.getElementById('dzSecondary');
+    var submitBtn = document.getElementById('submitBtn');
+    var hint      = document.getElementById('hint');
+
+    function formatSize(bytes) {
+        if (bytes < 1024) { return bytes + ' B'; }
+        if (bytes < 1024 * 1024) { return (bytes / 1024).toFixed(0) + ' KB'; }
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function showFile(file) {
+        if (!file) { return; }
+        dropzone.classList.add('has-file');
+        primary.textContent = file.name;
+        secondary.textContent = formatSize(file.size) + ' · click to choose a different file';
+        submitBtn.disabled = false;
+        hint.textContent = '';
+    }
+
+    fileInput.addEventListener('change', function () {
+        showFile(fileInput.files[0]);
+    });
+
+    ['dragenter', 'dragover'].forEach(function (name) {
+        dropzone.addEventListener(name, function (event) {
+            event.preventDefault();
+            dropzone.classList.add('is-dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(function (name) {
+        dropzone.addEventListener(name, function (event) {
+            event.preventDefault();
+            dropzone.classList.remove('is-dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', function (event) {
+        var dropped = event.dataTransfer.files;
+        if (dropped && dropped.length) {
+            fileInput.files = dropped;
+            showFile(dropped[0]);
+        }
+    });
+
+    // Restore state if the browser repopulates the input on back-navigation.
+    if (fileInput.files && fileInput.files.length) {
+        showFile(fileInput.files[0]);
+    }
+</script>
+
+</body>
 </html>

@@ -1,54 +1,497 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Results</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Results &middot; {{ filename }}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --plane:          #f9f9f7;
+            --surface:        #fcfcfb;
+            --text-primary:   #0b0b0b;
+            --text-secondary: #52514e;
+            --text-muted:     #898781;
+            --border:         rgba(11, 11, 11, 0.10);
+            --accent:         #256abf;
+            --accent-hover:   #184f95;
+            --track:          #e1e0d9;
+            --good:           #0ca30c;
+            --warning:        #fab219;
+            --critical:       #d03b3b;
+            --chip-bg:        #f2f1ee;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:where(:not([data-theme="light"])) {
+                color-scheme: dark;
+                --plane:          #0d0d0d;
+                --surface:        #1a1a19;
+                --text-primary:   #ffffff;
+                --text-secondary: #c3c2b7;
+                --text-muted:     #898781;
+                --border:         rgba(255, 255, 255, 0.10);
+                --accent:         #3987e5;
+                --accent-hover:   #5598e7;
+                --track:          #2c2c2a;
+                --chip-bg:        #262625;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 48px 24px;
+            background-color: var(--plane);
+            color: var(--text-primary);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            line-height: 1.5;
+        }
+
+        .wrap { max-width: 720px; margin: 0 auto; }
+
+        .card {
+            background-color: var(--surface);
+            padding: 32px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 22px;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        h2 {
+            margin: 0 0 16px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Hero figure + meter ----------------------------------------- */
+
+        .hero {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin: 20px 0 4px;
+        }
+
+        .hero-value {
+            font-size: 52px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-limit {
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .hero-label {
+            margin: 0 0 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .meter {
+            height: 10px;
+            background-color: var(--track);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 5px;
+            background-color: var(--accent);
+        }
+
+        .meter-fill.is-good     { background-color: var(--good); }
+        .meter-fill.is-warning  { background-color: var(--warning); }
+        .meter-fill.is-critical { background-color: var(--critical); }
+
+        /* Status pill ------------------------------------------------- */
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 5px 12px 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            background-color: var(--chip-bg);
+            color: var(--text-primary);
+        }
+
+        .pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .pill.is-good     .dot { background-color: var(--good); }
+        .pill.is-warning  .dot { background-color: var(--warning); }
+        .pill.is-critical .dot { background-color: var(--critical); }
+
+        /* Heading checklist ------------------------------------------- */
+
+        .checklist {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 2px 20px;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 0;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .checklist svg { flex-shrink: 0; }
+        .checklist .found svg   { color: var(--good); }
+        .checklist .missing svg { color: var(--critical); }
+        .checklist .missing     { font-weight: 600; }
+        .checklist .found       { color: var(--text-secondary); }
+        .checklist .extra       { color: var(--text-secondary); }
+        .checklist .extra svg   { color: var(--text-muted); }
+
+        /* Full heading list ------------------------------------------ */
+
+        .headings {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            counter-reset: none;
+        }
+
+        .headings li {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .headings li:last-child { border-bottom: none; }
+
+        .headings .pos {
+            flex-shrink: 0;
+            min-width: 22px;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-muted);
+        }
+
+        .headings .name { overflow-wrap: anywhere; }
+
+        .headings .found .name { font-weight: 600; }
+        .headings .extra .name { color: var(--text-secondary); }
+
+        .headings .tag {
+            flex-shrink: 0;
+            padding: 1px 7px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background-color: var(--chip-bg);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .headings .tag.is-required { color: var(--good); }
+
+        /* Chips ------------------------------------------------------- */
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .chips li {
+            padding: 4px 11px;
+            border-radius: 6px;
+            background-color: var(--chip-bg);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+        }
+
+        .count {
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .empty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .empty svg { color: var(--good); flex-shrink: 0; }
+        .empty.is-warning svg { color: var(--warning); }
+
+        .note {
+            margin: -8px 0 14px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Document preview ------------------------------------------- */
+
+        details.preview summary {
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            list-style: none;
+        }
+
+        details.preview summary::-webkit-details-marker { display: none; }
+
+        details.preview summary::before {
+            content: "\25B8";
+            display: inline-block;
+            margin-right: 8px;
+            color: var(--text-muted);
+            transition: transform 0.15s;
+        }
+
+        details.preview[open] summary::before { transform: rotate(90deg); }
+
+        .doc-body {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            max-height: 480px;
+            overflow-y: auto;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .doc-body h2 {
+            margin: 20px 0 6px;
+            font-size: 15px;
+            color: var(--accent);
+        }
+
+        .doc-body p { margin: 0 0 8px; }
+
+        /* Footer ------------------------------------------------------ */
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--accent);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 11px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.15s;
+        }
+
+        .back:hover { background-color: var(--accent-hover); }
+    </style>
 </head>
 <body>
 
-<h1>Results for {{ filename }}</h1>
+<div class="wrap">
 
-<h2>Required Headings Check</h2>
-
-<h1>Results for {{ filename }}</h1>
-
-<h2>
-    {{ found_headings|length }} /
-    {{ required_headings|length }}
-    Headings Found
-</h2>
-
-<h2>Required Headings Check</h2>
-
-<ul>
-
-{% for heading in required_headings %}
-
-    {% if heading in found_headings %}
-
-        <li style="color:green;">
-            ✓ {{ heading }}
-        </li>
-
+    {% set found_count = found_headings|length %}
+    {% set total_count = required_headings|length %}
+    {% set pct = (found_count / total_count * 100) if total_count else 0 %}
+    {% if found_count == total_count %}
+        {% set state = 'good' %}{% set state_text = 'All required headings present' %}
+    {% elif pct >= 60 %}
+        {% set state = 'warning' %}{% set state_text = (total_count - found_count)|string + ' heading(s) missing' %}
     {% else %}
-
-        <li style="color:red; font-weight:bold;">
-            ✗ {{ heading }}
-        </li>
-
+        {% set state = 'critical' %}{% set state_text = (total_count - found_count)|string + ' heading(s) missing' %}
     {% endif %}
 
-{% endfor %}
+    <!-- Summary --------------------------------------------------- -->
+    <section class="card">
+        <p class="eyebrow">Review complete</p>
+        <h1>{{ filename }}</h1>
 
-</ul>
+        <div class="hero">
+            <span class="hero-value">{{ found_count }}</span>
+            <span class="hero-limit">/ {{ total_count }}</span>
+        </div>
+        <p class="hero-label">Required section headings found</p>
 
-<h2>Spelling Errors</h2>
-<p>{{ spelling_errors }}</p>
+        <div class="meter" role="img"
+             aria-label="{{ found_count }} of {{ total_count }} required headings found">
+            <div class="meter-fill is-{{ state }}" style="width: {{ pct }}%;"></div>
+        </div>
 
+        <span class="pill is-{{ state }}">
+            <span class="dot"></span>{{ state_text }}
+        </span>
+    </section>
 
+    <!-- Headings -------------------------------------------------- -->
+    <section class="card">
+        <h2>Required headings</h2>
+        <ul class="checklist">
+            {% for heading in required_headings %}
+                {% if heading in found_headings %}
+                    <li class="found">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
+                        {{ heading }}
+                    </li>
+                {% else %}
+                    <li class="missing">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                        {{ heading }}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </section>
 
-<br>
+    <!-- All headings found ---------------------------------------- -->
+    <section class="card">
+        <h2>All headings found <span class="count">{{ all_headings|length }}</span></h2>
+        {% if all_headings %}
+            <p class="note">
+                Every heading detected in the document, in the order it appears.
+                {{ found_count }} required, {{ extra_headings|length }} other.
+            </p>
+            <ol class="headings">
+                {% for heading in all_headings %}
+                    <li class="{{ 'found' if heading.required else 'extra' }}">
+                        <span class="pos">{{ loop.index }}</span>
+                        <span class="name">{{ heading.text }}</span>
+                        {% if heading.count > 1 %}
+                            <span class="tag">&times;{{ heading.count }}</span>
+                        {% endif %}
+                        {% if heading.required %}
+                            <span class="tag is-required">Required</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p class="empty is-warning">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>
+                </svg>
+                No headings were detected in this document.
+            </p>
+        {% endif %}
+    </section>
 
-<a href="/">Upload Another File</a>
+    <!-- Forbidden wording ----------------------------------------- -->
+    <section class="card">
+        <h2>Forbidden wording <span class="count">{{ forbidden_words|length }}</span></h2>
+        {% if forbidden_words %}
+            <ul class="chips">
+                {% for word in forbidden_words %}<li>{{ word }}</li>{% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                No forbidden wording found.
+            </p>
+        {% endif %}
+    </section>
+
+    <!-- Missing phrases ------------------------------------------- -->
+    {% if missing_phrases %}
+    <section class="card">
+        <h2>Missing required phrases <span class="count">{{ missing_phrases|length }}</span></h2>
+        <ul class="chips">
+            {% for phrase in missing_phrases %}<li>{{ phrase }}</li>{% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <!-- Spelling -------------------------------------------------- -->
+    <section class="card">
+        <h2>Possible spelling errors <span class="count">{{ spelling_errors|length }}</span></h2>
+        {% if skipped_sections %}
+            <p class="note">
+                Skipped {{ skipped_sections|length }} test/programming section{{ 's' if skipped_sections|length != 1 }}:
+                {{ skipped_sections|join(', ') }}.
+            </p>
+        {% endif %}
+        {% if spelling_errors %}
+            <ul class="chips">
+                {% for word in spelling_errors|sort %}<li>{{ word }}</li>{% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                No spelling errors found.
+            </p>
+        {% endif %}
+    </section>
+
+    <!-- Document preview ------------------------------------------ -->
+    <section class="card">
+        <details class="preview">
+            <summary>Document preview</summary>
+            <div class="doc-body">{{ formatted_text|safe }}</div>
+        </details>
+    </section>
+
+    <a class="back" href="/">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Check another document
+    </a>
+
+</div>
 
 </body>
 </html>

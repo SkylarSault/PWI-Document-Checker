@@ -1,6 +1,8 @@
 services:
   - type: web
-    name: pwi-document-checker
+    # Must match the live service. The name without "-1" is a suspended
+    # service; pointing here at that one is what created two confusing URLs.
+    name: pwi-document-checker-1
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
