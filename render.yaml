@@ -1,8 +1,7 @@
 services:
   - type: web
-    # Must match the live service. The name without "-1" is a suspended
-    # service; pointing here at that one is what created two confusing URLs.
-    name: pwi-document-checker-1
+    # Sets the public URL: https://<name>.onrender.com
+    name: pwi-document-checker
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
