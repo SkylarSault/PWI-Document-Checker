@@ -8,6 +8,11 @@ import re
 
 app = Flask(__name__)
 
+# Uploads are read into memory, so cap what one request may carry. Flask
+# rejects anything larger with a 413 before the body reaches the route.
+MAX_UPLOAD_MB = 10
+app.config['MAX_CONTENT_LENGTH'] = MAX_UPLOAD_MB * 1024 * 1024
+
 # Building the checker loads a word-frequency dictionary, so do it once at
 # import instead of per request. Lookups are read-only.
 spell = SpellChecker()
@@ -332,6 +337,16 @@ def format_text_with_headings(text, lookup):
     return html
 
 
+def error_page(message, status):
+    return render_template("error.html", message=message), status
+
+
+@app.errorhandler(413)
+def upload_too_large(error):
+    return error_page(
+        f"That file is larger than the {MAX_UPLOAD_MB} MB limit.", 413)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method != 'POST':
@@ -340,13 +355,23 @@ def upload_file():
 
     uploaded_file = request.files.get('document')
 
-    if not uploaded_file:
-        return '<h3>No file uploaded</h3>'
+    if not uploaded_file or not uploaded_file.filename:
+        return error_page("No file was uploaded.", 400)
 
-    text, headings = extract_document(uploaded_file)
+    try:
+        text, headings = extract_document(uploaded_file)
+    except Exception:
+        # python-docx and PyPDF2 raise assorted exception types on a file that
+        # is corrupt, encrypted or not really the format its name claims.
+        app.logger.exception("Could not read %s", uploaded_file.filename)
+
+        return error_page(
+            "That file could not be read. It may be corrupt, password "
+            "protected, or not really a Word, PDF or text file.", 400)
 
     if text is None:
-        return '<h3>Unsupported file type</h3>'
+        return error_page(
+            "Unsupported file type. Upload a .docx, .pdf or .txt file.", 400)
 
     lookup = build_heading_lookup(headings)
     spelling_errors, skipped_sections = check_spelling(text, lookup)
