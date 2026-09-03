@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}PWI Document Checker{% endblock %}</title>
+    <style>
+        /* Shared shell: design tokens, page frame, card, label, button.
+           Page-specific rules go in each template's style block below. */
+
+        :root {
+            color-scheme: light;
+            --plane:          #f9f9f7;
+            --surface:        #fcfcfb;
+            --text-primary:   #0b0b0b;
+            --text-secondary: #52514e;
+            --text-muted:     #898781;
+            --border:         rgba(11, 11, 11, 0.10);
+            --accent:         #256abf;
+            --accent-hover:   #184f95;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:where(:not([data-theme="light"])) {
+                color-scheme: dark;
+                --plane:          #0d0d0d;
+                --surface:        #1a1a19;
+                --text-primary:   #ffffff;
+                --text-secondary: #c3c2b7;
+                --text-muted:     #898781;
+                --border:         rgba(255, 255, 255, 0.10);
+                --accent:         #3987e5;
+                --accent-hover:   #5598e7;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 48px 24px;
+            background-color: var(--plane);
+            color: var(--text-primary);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            line-height: 1.5;
+        }
+
+        .card {
+            background-color: var(--surface);
+            padding: 32px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        /* Small uppercase label above a heading or list. */
+        .eyebrow {
+            margin: 0 0 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--accent);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .button:hover { background-color: var(--accent-hover); }
+
+        .button:disabled {
+            background-color: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        {% block style %}{% endblock %}
+    </style>
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>
