@@ -2,10 +2,8 @@ services:
   - type: web
     # Sets the public URL: https://<name>.onrender.com
     name: pwi-document-checker
-    runtime: python
+    # This service is a Docker service on Render, so the build and start
+    # commands live in the Dockerfile rather than here.
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     plan: free
-    buildCommand: pip install -r requirements.txt
-    # One worker fits the free tier's 512 MB; the dictionary and the uploaded
-    # document both live in memory. The default 30s timeout is too tight for a
-    # long PDF, so allow two minutes per request.
-    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
