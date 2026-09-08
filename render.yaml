@@ -1,7 +1,12 @@
 services:
   - type: web
-    # Sets the public URL: https://<name>.onrender.com
-    name: pwi-document-checker
+    # Matches the live service, which serves at
+    # https://pwi-document-checker-1.onrender.com. The -1 suffix is Render's:
+    # plain "pwi-document-checker" was already taken account-wide. This file
+    # only takes effect when Render creates services from a Blueprint, so the
+    # existing dashboard-created service ignores it -- the name is kept in
+    # sync here so the two do not contradict each other.
+    name: pwi-document-checker-1
     # This service is a Docker service on Render, so the build and start
     # commands live in the Dockerfile rather than here.
     runtime: docker
