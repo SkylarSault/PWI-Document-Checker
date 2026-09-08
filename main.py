@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template
 from docx import Document
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from spellchecker import SpellChecker
 from html import escape
 import io
@@ -361,7 +361,7 @@ def upload_file():
     try:
         text, headings = extract_document(uploaded_file)
     except Exception:
-        # python-docx and PyPDF2 raise assorted exception types on a file that
+        # python-docx and pypdf raise assorted exception types on a file that
         # is corrupt, encrypted or not really the format its name claims.
         app.logger.exception("Could not read %s", uploaded_file.filename)
 
